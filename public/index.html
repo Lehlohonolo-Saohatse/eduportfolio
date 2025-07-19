@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduPortfolio - My Educational Journey</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Public View Header -->
+    <header id="public-header">
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    EduPortfolio
+                </a>
+                <div class="nav-links">
+                    <a href="#" class="active" data-view="public-home">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    <a href="#" data-view="public-modules">
+                        <i class="fas fa-book"></i> Modules
+                    </a>
+                    <a href="#" data-view="public-projects">
+                        <i class="fas fa-project-diagram"></i> Projects
+                    </a>
+                    <a href="#" data-view="public-about">
+                        <i class="fas fa-user"></i> About
+                    </a>
+                    <a href="#" class="btn btn-primary" id="login-btn">
+                        <i class="fas fa-lock"></i> Admin Login
+                    </a>
+                </div>
+                <button class="btn btn-primary" id="mobile-menu-btn" style="display: none;">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Admin View Header -->
+    <header id="admin-header" style="display: none;">
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    EduPortfolio Admin
+                </a>
+                <div class="nav-links">
+                    <a href="#" class="active" data-view="admin-dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a href="#" data-view="admin-modules">
+                        <i class="fas fa-book"></i> Modules
+                    </a>
+                    <a href="#" data-view="admin-projects">
+                        <i class="fas fa-project-diagram"></i> Projects
+                    </a>
+                    <a href="#" data-view="admin-categories">
+                        <i class="fas fa-tags"></i> Categories
+                    </a>
+                    <a href="#" data-view="admin-about">
+                        <i class="fas fa-user"></i> About Me
+                    </a>
+                    <a href="#" class="btn btn-danger" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Public Views -->
+    <div id="public-home" class="view-section active">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Showcase Your Educational Journey</h1>
+                    <p>A comprehensive portfolio platform to display your academic modules, assessments, and projects to potential employers</p>
+                    <div class="hero-btns">
+                        <a href="#" class="btn btn-primary" data-view="public-modules">
+                            <i class="fas fa-book-open"></i> View Modules
+                        </a>
+                        <a href="#" class="btn btn-outline" data-view="public-projects">
+                            <i class="fab fa-github"></i> GitHub Projects
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="stats-grid" id="stats-grid">
+                <!-- Stats will be populated dynamically -->
+            </div>
+
+            <h2 class="section-title">Featured Modules</h2>
+            
+            <div class="modules-grid" id="featured-modules">
+                <!-- Modules will be populated dynamically -->
+            </div>
+            
+            <div class="main-content" style="margin-top: 2rem; text-align: center;">
+                <a href="#" class="btn btn-primary" data-view="public-modules">
+                    <i class="fas fa-book"></i> View All Modules
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="public-modules" class="view-section">
+        <div class="container">
+            <div class="main-content">
+                <h2 class="section-title">My Educational Modules</h2>
+                <p style="text-align: center; margin-bottom: 1.5rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+                    Below you'll find a comprehensive list of all the academic modules and online courses I've completed, 
+                    including assessments and related projects.
+                </p>
+                
+                <div class="modules-grid" id="all-modules">
+                    <!-- Modules will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="public-projects" class="view-section">
+        <div class="container">
+            <div class="main-content">
+                <h2 class="section-title">GitHub Projects</h2>
+                <p style="text-align: center; margin-bottom: 2rem;">
+                    Explore my technical projects on GitHub associated with various educational modules
+                </p>
+                
+                <div class="modules-grid" id="all-projects">
+                    <!-- Projects will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="public-about" class="view-section">
+        <div class="container">
+            <div class="main-content">
+                <h2 class="section-title">About Me</h2>
+                
+                <div style="display: flex; gap: 2rem; margin-top: 2rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <img src="./images/1738497107133.jpeg" alt="Profile Photo" style="width: 100%; border-radius: 8px; margin-bottom: 1.5rem;">
+                    </div>
+                    <div style="flex: 2; min-width: 300px;" id="profile-content">
+                        <!-- Profile content will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login View -->
+    <div id="login-view" class="view-section">
+        <div class="login-container">
+            <div class="form-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2>Admin Login</h2>
+            <div class="alert alert-error" id="login-error" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i> Invalid username or password
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username"><i class="fas fa-user"></i> Username</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-key"></i> Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Views -->
+    <div id="admin-dashboard" class="view-section">
+        <div class="container">
+            <div class="dashboard">
+                <div class="sidebar">
+                    <h3><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" class="active" data-view="admin-dashboard">
+                                <i class="fas fa-chart-line"></i> Overview
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-modules">
+                                <i class="fas fa-book"></i> Modules
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-projects">
+                                <i class="fas fa-project-diagram"></i> Projects
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-categories">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-about">
+                                <i class="fas fa-user"></i> About Me
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="main-content">
+                    <h2>Admin Dashboard</h2>
+                    <p>Welcome back! Manage your educational portfolio content</p>
+                    
+                    <div class="stats-grid" id="admin-stats-grid">
+                        <!-- Stats will be populated dynamically -->
+                    </div>
+                    
+                    <div style="margin-top: 2rem;">
+                        <h3>Recent Activity</h3>
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin-top: 1rem;" id="recent-activity">
+                            <!-- Recent activity will be populated dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                        <a href="#" class="btn btn-primary" data-view="admin-modules">
+                            <i class="fas fa-book"></i> Manage Modules
+                        </a>
+                        <a href="#" class="btn btn-success" data-view="admin-projects">
+                            <i class="fas fa-plus"></i> Add New Project
+                        </a>
+                        <a href="#" class="btn btn-primary" data-view="admin-categories">
+                            <i class="fas fa-tags"></i> Manage Categories
+                        </a>
+                        <a href="#" class="btn btn-primary" data-view="admin-about">
+                            <i class="fas fa-user"></i> Edit About Me
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-modules" class="view-section">
+        <div class="container">
+            <div class="dashboard">
+                <div class="sidebar">
+                    <h3><i class="fas fa-book"></i> Modules</h3>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" class="active" data-view="admin-modules">
+                                <i class="fas fa-list"></i> All Modules
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-add-module">
+                                <i class="fas fa-plus-circle"></i> Add New Module
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-categories">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="main-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>Manage Modules</h2>
+                        <a href="#" class="btn btn-success" data-view="admin-add-module">
+                            <i class="fas fa-plus"></i> Add New Module
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-success" id="module-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Module saved successfully!
+                    </div>
+                    
+                    <div class="modules-grid" id="admin-all-modules">
+                        <!-- Modules will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-add-module" class="view-section">
+        <div class="container">
+            <div class="dashboard">
+                <div class="sidebar">
+                    <h3><i class="fas fa-book"></i> Modules</h3>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" data-view="admin-modules">
+                                <i class="fas fa-list"></i> All Modules
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="active" data-view="admin-add-module">
+                                <i class="fas fa-plus-circle"></i> Add New Module
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-categories">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="main-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>Add New Module</h2>
+                        <a href="#" class="btn btn-outline" data-view="admin-modules">
+                            <i class="fas fa-arrow-left"></i> Back to Modules
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-success" id="module-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Module saved successfully!
+                    </div>
+                    
+                    <form id="module-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="module-name"><i class="fas fa-heading"></i> Module Name</label>
+                                <input type="text" id="module-name" class="form-control" placeholder="Enter module name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="module-type"><i class="fas fa-tag"></i> Module Type</label>
+                                <select id="module-type" class="form-control" required>
+                                    <option value="">Select type</option>
+                                    <option value="university">University Course</option>
+                                    <option value="online">Online Course</option>
+                                    <option value="workshop">Workshop</option>
+                                    <option value="certification">Certification</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="module-desc"><i class="fas fa-align-left"></i> Description</label>
+                            <textarea id="module-desc" class="form-control" rows="3" placeholder="Module description" required></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="start-date"><i class="fas fa-calendar-alt"></i> Start Date</label>
+                                <input type="date" id="start-date" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="end-date"><i class="fas fa-calendar-alt"></i> End Date</label>
+                                <input type="date" id="end-date" class="form-control">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="module-categories"><i class="fas fa-tags"></i> Categories</label>
+                            <select id="module-categories" class="form-control" multiple>
+                                <!-- Categories will be populated dynamically -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fab fa-github"></i> GitHub Projects</label>
+                            <div id="projects-container">
+                                <div class="dynamic-field">
+                                    <input type="text" class="form-control" placeholder="Project title">
+                                    <input type="url" class="form-control" placeholder="GitHub URL">
+                                    <div class="remove-field">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary add-field-btn" id="add-project">
+                                <i class="fas fa-plus"></i> Add Another Project
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-tasks"></i> Assessments</label>
+                            <div id="assessments-container">
+                                <div class="dynamic-field">
+                                    <input type="text" class="form-control" placeholder="Assessment name">
+                                    <input type="text" class="form-control" placeholder="Grade/Result">
+                                    <div class="remove-field">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary add-field-btn" id="add-assessment">
+                                <i class="fas fa-plus"></i> Add Another Assessment
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="module-status"><i class="fas fa-check-circle"></i> Status</label>
+                            <select id="module-status" class="form-control" required>
+                                <option value="draft">Draft</option>
+                                <option value="published">Published</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Save Module
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-edit-module" class="view-section">
+        <div class="container">
+            <div class="dashboard">
+                <div class="sidebar">
+                    <h3><i class="fas fa-book"></i> Modules</h3>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" data-view="admin-modules">
+                                <i class="fas fa-list"></i> All Modules
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-add-module">
+                                <i class="fas fa-plus-circle"></i> Add New Module
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="active" data-view="admin-edit-module">
+                                <i class="fas fa-edit"></i> Edit Module
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-categories">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="main-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>Edit Module</h2>
+                        <a href="#" class="btn btn-outline" data-view="admin-modules">
+                            <i class="fas fa-arrow-left"></i> Back to Modules
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-success" id="module-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Module updated successfully!
+                    </div>
+                    
+                    <form id="edit-module-form">
+                        <input type="hidden" id="edit-module-id">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edit-module-name"><i class="fas fa-heading"></i> Module Name</label>
+                                <input type="text" id="edit-module-name" class="form-control" placeholder="Enter module name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-module-type"><i class="fas fa-tag"></i> Module Type</label>
+                                <select id="edit-module-type" class="form-control" required>
+                                    <option value="">Select type</option>
+                                    <option value="university">University Course</option>
+                                    <option value="online">Online Course</option>
+                                    <option value="workshop">Workshop</option>
+                                    <option value="certification">Certification</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-module-desc"><i class="fas fa-align-left"></i> Description</label>
+                            <textarea id="edit-module-desc" class="form-control" rows="3" placeholder="Module description" required></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edit-start-date"><i class="fas fa-calendar-alt"></i> Start Date</label>
+                                <input type="date" id="edit-start-date" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-end-date"><i class="fas fa-calendar-alt"></i> End Date</label>
+                                <input type="date" id="edit-end-date" class="form-control">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-module-categories"><i class="fas fa-tags"></i> Categories</label>
+                            <select id="edit-module-categories" class="form-control" multiple>
+                                <!-- Categories will be populated dynamically -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-github"></i> GitHub Projects</label>
+                            <div id="edit-projects-container">
+                                <div class="dynamic-field">
+                                    <input type="text" class="form-control" placeholder="Project title">
+                                    <input type="url" class="form-control" placeholder="GitHub URL">
+                                    <div class="remove-field">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary add-field-btn" id="edit-add-project">
+                                <i class="fas fa-plus"></i> Add Another Project
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-tasks"></i> Assessments</label>
+                            <div id="edit-assessments-container">
+                                <div class="dynamic-field">
+                                    <input type="text" class="form-control" placeholder="Assessment name">
+                                    <input type="text" class="form-control" placeholder="Grade/Result">
+                                    <div class="remove-field">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary add-field-btn" id="edit-add-assessment">
+                                <i class="fas fa-plus"></i> Add Another Assessment
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-module-status"><i class="fas fa-check-circle"></i> Status</label>
+                            <select id="edit-module-status" class="form-control" required>
+                                <option value="draft">Draft</option>
+                                <option value="published">Published</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Update Module
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-projects" class="view-section">
+        <div class="container">
+            <div class="dashboard">
+                <div class="sidebar">
+                    <h3><i class="fas fa-project-diagram"></i> Projects</h3>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" class="active" data-view="admin-projects">
+                                <i class="fas fa-list"></i> All Projects
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-add-project">
+                                <i class="fas fa-plus-circle"></i> Add New Project
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-categories">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="main-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>Manage Projects</h2>
+                        <a href="#" class="btn btn-success" data-view="admin-add-project">
+                            <i class="fas fa-plus"></i> Add New Project
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-success" id="project-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Project saved successfully!
+                    </div>
+                    
+                    <div class="modules-grid" id="admin-all-projects">
+                        <!-- Projects will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-add-project" class="view-section">
+        <div class="container">
+            <div class="dashboard">
+                <div class="sidebar">
+                    <h3><i class="fas fa-project-diagram"></i> Projects</h3>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" data-view="admin-projects">
+                                <i class="fas fa-list"></i> All Projects
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="active" data-view="admin-add-project">
+                                <i class="fas fa-plus-circle"></i> Add New Project
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-categories">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="main-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>Add New Project</h2>
+                        <a href="#" class="btn btn-outline" data-view="admin-projects">
+                            <i class="fas fa-arrow-left"></i> Back to Projects
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-success" id="project-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Project saved successfully!
+                    </div>
+                    
+                    <div class="alert alert-error" id="project-error" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> Failed to save project
+                    </div>
+                    
+                    <form id="project-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="project-title"><i class="fas fa-heading"></i> Project Title</label>
+                                <input type="text" id="project-title" class="form-control" placeholder="Enter project title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="project-module"><i class="fas fa-book"></i> Related Module</label>
+                                <input type="text" id="project-module" class="form-control" placeholder="Enter related module name" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="project-desc"><i class="fas fa-align-left"></i> Description</label>
+                            <textarea id="project-desc" class="form-control" rows="3" placeholder="Project description" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="project-categories"><i class="fas fa-tags"></i> Categories</label>
+                            <select id="project-categories" class="form-control" multiple>
+                                <!-- Categories will be populated dynamically -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="project-technologies"><i class="fas fa-code"></i> Technologies</label>
+                            <input type="text" id="project-technologies" class="form-control" placeholder="Enter technologies (comma-separated)" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="project-date"><i class="fas fa-calendar-alt"></i> Date</label>
+                                <input type="date" id="project-date" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="project-github"><i class="fab fa-github"></i> GitHub URL</label>
+                                <input type="url" id="project-github" class="form-control" placeholder="Enter GitHub URL" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Save Project
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-edit-project" class="view-section">
+        <div class="container">
+            <div class="dashboard">
+                <div class="sidebar">
+                    <h3><i class="fas fa-project-diagram"></i> Projects</h3>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" data-view="admin-projects">
+                                <i class="fas fa-list"></i> All Projects
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-add-project">
+                                <i class="fas fa-plus-circle"></i> Add New Project
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="active" data-view="admin-edit-project">
+                                <i class="fas fa-edit"></i> Edit Project
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-categories">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="main-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>Edit Project</h2>
+                        <a href="#" class="btn btn-outline" data-view="admin-projects">
+                            <i class="fas fa-arrow-left"></i> Back to Projects
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-success" id="project-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Project updated successfully!
+                    </div>
+                    
+                    <div class="alert alert-error" id="project-error" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> Failed to update project
+                    </div>
+                    
+                    <form id="edit-project-form">
+                        <input type="hidden" id="edit-project-id">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edit-project-title"><i class="fas fa-heading"></i> Project Title</label>
+                                <input type="text" id="edit-project-title" class="form-control" placeholder="Enter project title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-project-module"><i class="fas fa-book"></i> Related Module</label>
+                                <input type="text" id="edit-project-module" class="form-control" placeholder="Enter related module name" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-project-desc"><i class="fas fa-align-left"></i> Description</label>
+                            <textarea id="edit-project-desc" class="form-control" rows="3" placeholder="Project description" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-project-categories"><i class="fas fa-tags"></i> Categories</label>
+                            <select id="edit-project-categories" class="form-control" multiple>
+                                <!-- Categories will be populated dynamically -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-project-technologies"><i class="fas fa-code"></i> Technologies</label>
+                            <input type="text" id="edit-project-technologies" class="form-control" placeholder="Enter technologies (comma-separated)" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edit-project-date"><i class="fas fa-calendar-alt"></i> Date</label>
+                                <input type="date" id="edit-project-date" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-project-github"><i class="fab fa-github"></i> GitHub URL</label>
+                                <input type="url" id="edit-project-github" class="form-control" placeholder="Enter GitHub URL" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Update Project
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-categories" class="view-section">
+        <div class="container">
+            <div class="dashboard">
+                <div class="sidebar">
+                    <h3><i class="fas fa-tags"></i> Categories</h3>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" class="active" data-view="admin-categories">
+                                <i class="fas fa-list"></i> All Categories
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-modules">
+                                <i class="fas fa-book"></i> Modules
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-projects">
+                                <i class="fas fa-project-diagram"></i> Projects
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="main-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>Manage Categories</h2>
+                    </div>
+                    
+                    <div class="alert alert-success" id="category-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Category saved successfully!
+                    </div>
+                    <div class="alert alert-error" id="category-error" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> Failed to save category
+                    </div>
+                    
+                    <form id="category-form" style="margin-bottom: 2rem;">
+                        <input type="hidden" id="category-id">
+                        <div class="form-group">
+                            <label for="category-name"><i class="fas fa-tag"></i> Category Name</label>
+                            <input type="text" id="category-name" class="form-control" placeholder="Enter category name" required>
+                        </div>
+                        <button type="submit" class="btn btn-success" id="category-submit">
+                            <i class="fas fa-save"></i> Save Category
+                        </button>
+                    </form>
+                    
+                    <div class="modules-grid" id="admin-all-categories">
+                        <!-- Categories will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-about" class="view-section">
+        <div class="container">
+            <div class="dashboard">
+                <div class="sidebar">
+                    <h3><i class="fas fa-user"></i> About Me</h3>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" class="active" data-view="admin-about">
+                                <i class="fas fa-user-edit"></i> Edit About Me
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-modules">
+                                <i class="fas fa-book"></i> Modules
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-projects">
+                                <i class="fas fa-project-diagram"></i> Projects
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="admin-categories">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="main-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>Edit About Me</h2>
+                        <a href="#" class="btn btn-outline" data-view="admin-dashboard">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-success" id="profile-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Profile updated successfully!
+                    </div>
+                    <div class="alert alert-error" id="profile-error" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> Failed to update profile
+                    </div>
+                    
+                    <form id="profile-form">
+                        <input type="hidden" id="profile-id">
+                        <div class="form-group">
+                            <label for="profile-name"><i class="fas fa-user"></i> Name</label>
+                            <input type="text" id="profile-name" class="form-control" placeholder="Enter your name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="profile-bio"><i class="fas fa-align-left"></i> Bio</label>
+                            <textarea id="profile-bio" class="form-control" rows="4" placeholder="Enter your bio" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-graduation-cap"></i> Education</label>
+                            <div id="education-container">
+                                <div class="dynamic-field">
+                                    <input type="text" class="form-control" placeholder="Degree (e.g., MSc in AI)">
+                                    <input type="text" class="form-control" placeholder="Institution and Years (e.g., Tech University, 2023-2025)">
+                                    <div class="remove-field">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary add-field-btn" id="add-education">
+                                <i class="fas fa-plus"></i> Add Another Education
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-code"></i> Skills</label>
+                            <div id="skills-container">
+                                <div class="dynamic-field">
+                                    <input type="text" class="form-control" placeholder="Skill (e.g., JavaScript)">
+                                    <div class="remove-field">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary add-field-btn" id="add-skill">
+                                <i class="fas fa-plus"></i> Add Another Skill
+                            </button>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Save Profile
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <h3>EduPortfolio</h3>
+                    <p>Showcasing academic achievements and technical skills</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#"><i class="fab fa-github"></i> GitHub</a>
+                    <a href="#" class="btn btn-primary"><i class="fab fa-linkedin"></i> LinkedIn</a>
+                    <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                <p>© 2025 Lehlohonolo Saohatse All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
