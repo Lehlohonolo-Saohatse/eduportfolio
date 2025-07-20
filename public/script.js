@@ -134,7 +134,7 @@ async function fetchProfile(isAdmin = false) {
                 profile.education.map(edu => `
                     <div class="dynamic-field">
                         <input type="text" class="form-control" placeholder="Degree (e.g., BSc in CS)" value="${edu.degree}">
-                        <input type="text" class="form-control" placeholder="Institution and Years (e.g., Tech University, 2023-2025)" value="${edu.institution}">
+                        <input type="text" class="form-control" placeholder="Institution and Years (e.g., Tech University, 2022-2025)" value="${edu.institution}">
                         <div class="remove-field">
                             <i class="fas fa-times"></i>
                         </div>
@@ -193,8 +193,7 @@ async function fetchProfile(isAdmin = false) {
                             ${profile.skills.map(skill => `<span class="badge badge-primary">${skill}</span>`).join('') || '<span>No skills listed</span>'}
                         </div>
                     </div>
-                     
-                `;  
+                `;
             }
         }
     } catch (error) {
