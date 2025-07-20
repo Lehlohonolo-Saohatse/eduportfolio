@@ -410,7 +410,7 @@ async function fetchModules(featured = false) {
         const allModules = document.getElementById('all-modules');
         
         if (featured && featuredModules) {
-            featuredModules.innerHTML = modules.slice(0, 2).map(renderModule).join('') || '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>No modules available</p></div>';
+            featuredModules.innerHTML = modules.slice(0, 3).map(renderModule).join('') || '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>No modules available</p></div>';
         }
         if (allModules) {
             allModules.innerHTML = modules.map(renderModule).join('') || '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>No modules available</p></div>';
