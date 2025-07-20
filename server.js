@@ -292,36 +292,28 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// Initialize admin user and default profile
-async function initAdminUser() {
+// Initialize default profile
+async function initDefaultProfile() {
     try {
-        const adminExists = await User.findOne({ username: 'admin' });
-        if (!adminExists) {
-            const hashedPassword = await bcrypt.hash('password123', 10);
-            const adminUser = new User({ username: 'admin', password: hashedPassword });
-            await adminUser.save();
-            console.log('Admin user created');
-        }
-
         const profileExists = await Profile.findOne();
         if (!profileExists) {
             const defaultProfile = new Profile({
-                name: 'Lehlohonolo Saohatse',
-                bio: 'Computer Science graduate with a passion for full-stack development and machine learning. Currently pursuing a Master\'s degree in Artificial Intelligence. Seeking opportunities to apply my technical skills in innovative projects.',
+                name: 'N/A',
+                bio: 'N/A',
                 education: [
-                    { degree: 'BSc in Computer Science and Electronics', institution: 'North-West University, 2022-2025' }
+                    { degree: 'N/A', institution: 'N/A, N/A' }
                 ],
-                skills: ['JavaScript', 'Python', 'React', 'Node.js', 'SQL', 'TensorFlow']
+                skills: ['N/A', 'N/A']
             });
             await defaultProfile.save();
             console.log('Default profile created');
         }
     } catch (error) {
-        console.error('Error initializing admin user or profile:', error);
+        console.error('Error initializing default profile:', error);
     }
 }
 
-initAdminUser();
+initDefaultProfile();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
