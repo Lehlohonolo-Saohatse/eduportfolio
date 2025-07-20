@@ -34,15 +34,15 @@ function showView(viewId) {
     // Trigger data fetching for specific views
     if (viewId === 'public-home') {
         fetchStats();
-        fetchModules(true);
+        fetchModules(true); // Fetch featured modules
     } else if (viewId === 'public-modules') {
         fetchModules();
     } else if (viewId === 'public-projects') {
         fetchProjects();
     } else if (viewId === 'public-about') {
-        loadProfile(false);
+        fetchProfile(false, 2); // Retry up to 2 times for public profile
     } else if (viewId === 'admin-dashboard') {
-        fetchStats(true);
+        fetchStats(true); // Admin stats
     } else if (viewId === 'admin-modules') {
         fetchAdminModules();
     } else if (viewId === 'admin-projects') {
@@ -50,7 +50,7 @@ function showView(viewId) {
     } else if (viewId === 'admin-categories') {
         fetchAdminCategories();
     } else if (viewId === 'admin-about') {
-        loadProfile(true);
+        fetchProfile(true, 2); // Retry up to 2 times for admin profile
     } else if (viewId === 'admin-add-module' || viewId === 'admin-edit-module') {
         fetchCategoriesForSelect(viewId === 'admin-add-module' ? 'module-categories' : 'edit-module-categories');
     } else if (viewId === 'admin-add-project' || viewId === 'admin-edit-project') {
@@ -117,127 +117,119 @@ async function fetchCategoriesForSelect(selectId) {
     }
 }
 
-// Improved Profile Loading System
-async function loadProfile(isAdmin) {
+// Fetch and display profile with retry logic
+async function fetchProfile(isAdmin = false, retries = 2) {
     try {
         const headers = {};
         if (isAdmin && token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
-
-        const response = await fetch(`${API_URL}/profile`, { headers });
-        
-        // Default profile data if API fails
-        const defaultProfile = {
-            name: 'Your Name',
-            bio: 'About me...',
-            education: [],
-            skills: []
-        };
-
-        if (!response.ok) {
-            displayProfile(defaultProfile, isAdmin);
-            return;
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                const response = await fetch(`${API_URL}/profile`, { headers });
+                if (!response.ok) {
+                    if (response.status === 401 && !isAdmin) {
+                        const profileContent = document.getElementById('profile-content');
+                        if (profileContent) {
+                            profileContent.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Profile requires authentication or is not public</p></div>';
+                        }
+                        return;
+                    }
+                    if (response.status === 404 && !isAdmin) {
+                        const profileContent = document.getElementById('profile-content');
+                        if (profileContent) {
+                            profileContent.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>No public profile available</p></div>';
+                        }
+                        return;
+                    }
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const profile = await response.json();
+                
+                if (isAdmin) {
+                    document.getElementById('profile-id').value = profile._id || '';
+                    document.getElementById('profile-name').value = profile.name;
+                    document.getElementById('profile-bio').value = profile.bio;
+                    
+                    const educationContainer = document.getElementById('education-container');
+                    educationContainer.innerHTML = profile.education.length > 0 ?
+                        profile.education.map(edu => `
+                            <div class="dynamic-field">
+                                <input type="text" class="form-control" placeholder="Degree (e.g., BSc in CS)" value="${edu.degree}">
+                                <input type="text" class="form-control" placeholder="Institution and Years (e.g., Tech University, 2022-2025)" value="${edu.institution}">
+                                <div class="remove-field">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>
+                        `).join('') :
+                        `<div class="dynamic-field">
+                            <input type="text" class="form-control" placeholder="Degree (e.g., MSc in AI)">
+                            <input type="text" class="form-control" placeholder="Institution and Years (e.g., Tech University, 2023-2025)">
+                            <div class="remove-field">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>`;
+                    
+                    const skillsContainer = document.getElementById('skills-container');
+                    skillsContainer.innerHTML = profile.skills.length > 0 ?
+                        profile.skills.map(skill => `
+                            <div class="dynamic-field">
+                                <input type="text" class="form-control" placeholder="Skill (e.g., JavaScript)" value="${skill}">
+                                <div class="remove-field">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>
+                        `).join('') :
+                        `<div class="dynamic-field">
+                            <input type="text" class="form-control" placeholder="Skill (e.g., JavaScript)">
+                            <div class="remove-field">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>`;
+                    
+                    document.querySelectorAll('#education-container .remove-field, #skills-container .remove-field').forEach(btn => {
+                        btn.addEventListener('click', () => btn.parentElement.remove());
+                    });
+                } else {
+                    const profileContent = document.getElementById('profile-content');
+                    if (profileContent) {
+                        profileContent.innerHTML = `
+                            <h3 style="margin-bottom: 1rem; color: var(--secondary);">${profile.name}</h3>
+                            <p style="margin-bottom: 1.5rem; font-size: 1.1rem;">${profile.bio}</p>
+                            <div style="margin-bottom: 2rem;">
+                                <h4 style="margin-bottom: 1rem; color: var(--dark);">Education</h4>
+                                <ul style="list-style: none;">
+                                    ${profile.education.map(edu => `
+                                        <li style="margin-bottom: 1rem; padding-left: 1.5rem; position: relative;">
+                                            <i class="fas fa-graduation-cap" style="position: absolute; left: 0; top: 5px; color: var(--primary);"></i>
+                                            <strong>${edu.degree}</strong><br>${edu.institution}
+                                        </li>
+                                    `).join('') || '<li>No education entries</li>'}
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 1rem; color: var(--dark);">Skills</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1.5rem;">
+                                    ${profile.skills.map(skill => `<span class="badge badge-primary">${skill}</span>`).join('') || '<span>No skills listed</span>'}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                return;
+            } catch (innerError) {
+                console.error('Inner error parsing profile:', innerError);
+                throw new Error('Failed to parse profile data');
+            }
         }
-
-        const data = await response.json();
-        const profile = data.data || data;
-        displayProfile(profile, isAdmin);
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
     } catch (error) {
-        console.error('Error loading profile:', error);
-        displayProfile({
-            name: 'Your Name',
-            bio: 'About me...',
-            education: [],
-            skills: []
-        }, isAdmin);
-    }
-}
-
-function displayProfile(profile, isAdmin) {
-    if (isAdmin) {
-        // Admin view - populate form
-        document.getElementById('profile-id').value = profile._id || '';
-        document.getElementById('profile-name').value = profile.name || '';
-        document.getElementById('profile-bio').value = profile.bio || '';
-        
-        // Education fields
-        const educationContainer = document.getElementById('education-container');
-        educationContainer.innerHTML = profile.education?.length > 0 ?
-            profile.education.map(edu => `
-                <div class="dynamic-field">
-                    <input type="text" class="form-control" placeholder="Degree" value="${edu.degree || ''}">
-                    <input type="text" class="form-control" placeholder="Institution" value="${edu.institution || ''}">
-                    <div class="remove-field">
-                        <i class="fas fa-times"></i>
-                    </div>
-                </div>
-            `).join('') :
-            `<div class="dynamic-field">
-                <input type="text" class="form-control" placeholder="Degree">
-                <input type="text" class="form-control" placeholder="Institution">
-                <div class="remove-field">
-                    <i class="fas fa-times"></i>
-                </div>
-            </div>`;
-        
-        // Skills fields
-        const skillsContainer = document.getElementById('skills-container');
-        skillsContainer.innerHTML = profile.skills?.length > 0 ?
-            profile.skills.map(skill => `
-                <div class="dynamic-field">
-                    <input type="text" class="form-control" placeholder="Skill" value="${skill || ''}">
-                    <div class="remove-field">
-                        <i class="fas fa-times"></i>
-                    </div>
-                </div>
-            `).join('') :
-            `<div class="dynamic-field">
-                <input type="text" class="form-control" placeholder="Skill">
-                <div class="remove-field">
-                    <i class="fas fa-times"></i>
-                </div>
-            </div>`;
-        
-        // Set up remove buttons
-        document.querySelectorAll('#education-container .remove-field, #skills-container .remove-field').forEach(btn => {
-            btn.addEventListener('click', () => btn.parentElement.remove());
-        });
-    } else {
-        // Public view - display profile
-        const profileContent = document.getElementById('profile-content');
-        if (profileContent) {
-            profileContent.innerHTML = `
-                <div class="profile-header">
-                    <h2>${profile.name || 'Your Name'}</h2>
-                    <p class="profile-bio">${profile.bio || 'About me...'}</p>
-                </div>
-                
-                <div class="profile-section">
-                    <h3><i class="fas fa-graduation-cap"></i> Education</h3>
-                    <ul class="education-list">
-                        ${profile.education?.length > 0 ? 
-                            profile.education.map(edu => `
-                                <li>
-                                    <strong>${edu.degree || ''}</strong>
-                                    <p>${edu.institution || ''}</p>
-                                </li>
-                            `).join('') : 
-                            '<li>No education information available</li>'}
-                    </ul>
-                </div>
-                
-                <div class="profile-section">
-                    <h3><i class="fas fa-code"></i> Skills</h3>
-                    <div class="skills-container">
-                        ${profile.skills?.length > 0 ? 
-                            profile.skills.map(skill => `
-                                <span class="skill-tag">${skill}</span>
-                            `).join('') : 
-                            '<span>No skills listed</span>'}
-                    </div>
-                </div>
-            `;
+        console.error('Error fetching profile:', error);
+        if (!isAdmin) {
+            const profileContent = document.getElementById('profile-content');
+            if (profileContent) {
+                profileContent.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading profile</p></div>';
+            }
         }
     }
 }
@@ -282,7 +274,7 @@ if (profileForm) {
                 setTimeout(() => {
                     profileSuccess.style.display = 'none';
                     showView('admin-dashboard');
-                    loadProfile(true);
+                    fetchProfile(true);
                 }, 2000);
             } else {
                 const errorData = await response.json();
