@@ -15,7 +15,6 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-app.use(express.static('public'));
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)
@@ -59,7 +58,7 @@ const profileSchema = new mongoose.Schema({
     bio: { type: String, required: true },
     education: [{ degree: String, institution: String }],
     skills: [String],
-    isPublic: { type: Boolean, default: false } // Added to control public access
+    isPublic: { type: Boolean, default: false }
 });
 
 const Category = mongoose.model('Category', categorySchema);
@@ -68,12 +67,11 @@ const Project = mongoose.model('Project', projectSchema);
 const User = mongoose.model('User', userSchema);
 const Profile = mongoose.model('Profile', profileSchema);
 
-// Middleware to authenticate JWT
+// Middleware
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'Access token required' });
-
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
         if (err) return res.status(403).json({ message: 'Invalid or expired token' });
         req.user = user;
@@ -81,7 +79,6 @@ function authenticateToken(req, res, next) {
     });
 }
 
-// Middleware to check public profile access
 async function checkPublicProfile(req, res, next) {
     if (!req.user) {
         try {
@@ -341,5 +338,6 @@ async function initDefaultProfile() {
 
 initDefaultProfile();
 
+app.use(express.static('public')); // Moved after API routes
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
