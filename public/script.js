@@ -1,5 +1,5 @@
 // API URL configuration with environment fallback
-const API_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/api' : window.location.origin + '/api';
+const API_URL = window.location.origin + '/api';
 let token = localStorage.getItem('token') || null;
 
 // View Management
