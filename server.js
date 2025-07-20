@@ -11,7 +11,8 @@ const app = express();
 app.use(cors({
     origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://eduportfolio.onrender.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true // Added to support credentials if needed
 }));
 app.use(express.json());
 app.use(express.static('public'));
@@ -51,8 +52,8 @@ const projectSchema = new mongoose.Schema({
 });
 
 const userSchema = new mongoose.Schema({
-    username: String,
-    password: String,
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
 });
 
 const profileSchema = new mongoose.Schema({
@@ -82,7 +83,7 @@ function authenticateToken(req, res, next) {
 }
 
 // Profile routes
-app.get('/api/profile', async (req, res) => {
+app.get('/api/profile', authenticateToken, async (req, res) => { // Added authentication
     try {
         const profile = await Profile.findOne();
         if (!profile) return res.status(404).json({ message: 'Profile not found' });
@@ -101,7 +102,7 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
             await profile.save();
             return res.status(201).json(profile);
         }
-        profile = await Profile.findOneAndUpdate({}, req.body, { new: true });
+        profile = await Profile.findOneAndUpdate({}, req.body, { new: true, runValidators: true });
         res.json(profile);
     } catch (error) {
         console.error('Error updating profile:', error);
@@ -138,13 +139,16 @@ app.post('/api/categories', authenticateToken, async (req, res) => {
         res.status(201).json(category);
     } catch (error) {
         console.error('Error saving category:', error);
+        if (error.code === 11000) { // Duplicate key error
+            return res.status(400).json({ message: 'Category name must be unique' });
+        }
         res.status(400).json({ message: error.message || 'Failed to save category' });
     }
 });
 
 app.put('/api/categories/:id', authenticateToken, async (req, res) => {
     try {
-        const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
         if (!category) return res.status(404).json({ message: 'Category not found' });
         res.json(category);
     } catch (error) {
@@ -195,18 +199,18 @@ app.post('/api/modules', authenticateToken, async (req, res) => {
         res.status(201).json(module);
     } catch (error) {
         console.error('Error saving module:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(400).json({ message: error.message || 'Failed to save module' });
     }
 });
 
 app.put('/api/modules/:id', authenticateToken, async (req, res) => {
     try {
-        const module = await Module.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('categories');
+        const module = await Module.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate('categories');
         if (!module) return res.status(404).json({ message: 'Module not found' });
         res.json(module);
     } catch (error) {
         console.error('Error updating module:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(400).json({ message: error.message || 'Failed to update module' });
     }
 });
 
@@ -250,18 +254,18 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
         res.status(201).json(project);
     } catch (error) {
         console.error('Error saving project:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(400).json({ message: error.message || 'Failed to save project' });
     }
 });
 
 app.put('/api/projects/:id', authenticateToken, async (req, res) => {
     try {
-        const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('categories');
+        const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate('categories');
         if (!project) return res.status(404).json({ message: 'Project not found' });
         res.json(project);
     } catch (error) {
         console.error('Error updating project:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(400).json({ message: error.message || 'Failed to update project' });
     }
 });
 
