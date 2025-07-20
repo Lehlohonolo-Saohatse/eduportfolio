@@ -12,7 +12,7 @@ app.use(cors({
     origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://eduportfolio.onrender.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true // Added to support credentials if needed
+    credentials: true
 }));
 app.use(express.json());
 app.use(express.static('public'));
@@ -61,6 +61,7 @@ const profileSchema = new mongoose.Schema({
     bio: { type: String, required: true },
     education: [{ degree: String, institution: String }],
     skills: [String],
+    isPublic: { type: Boolean, default: false } // Added to control public access
 });
 
 const Category = mongoose.model('Category', categorySchema);
@@ -82,10 +83,29 @@ function authenticateToken(req, res, next) {
     });
 }
 
+// Middleware to check public profile access
+function checkPublicProfile(req, res, next) {
+    if (!req.user) {
+        Profile.findOne({ isPublic: true }, (err, profile) => {
+            if (err) return res.status(500).json({ message: 'Server error' });
+            if (!profile) return res.status(404).json({ message: 'No public profile available' });
+            req.publicProfile = profile;
+            next();
+        });
+    } else {
+        next();
+    }
+}
+
 // Profile routes
-app.get('/api/profile', authenticateToken, async (req, res) => { // Added authentication
+app.get('/api/profile', checkPublicProfile, async (req, res) => {
     try {
-        const profile = await Profile.findOne();
+        let profile;
+        if (req.user) {
+            profile = await Profile.findOne();
+        } else if (req.publicProfile) {
+            profile = req.publicProfile;
+        }
         if (!profile) return res.status(404).json({ message: 'Profile not found' });
         res.json(profile);
     } catch (error) {
@@ -102,7 +122,7 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
             await profile.save();
             return res.status(201).json(profile);
         }
-        profile = await Profile.findOneAndUpdate({}, req.body, { new: true, runValidators: true });
+        profile = await Profile.findOneAndUpdate({}, { ...req.body, isPublic: req.body.isPublic || false }, { new: true, runValidators: true });
         res.json(profile);
     } catch (error) {
         console.error('Error updating profile:', error);
@@ -139,7 +159,7 @@ app.post('/api/categories', authenticateToken, async (req, res) => {
         res.status(201).json(category);
     } catch (error) {
         console.error('Error saving category:', error);
-        if (error.code === 11000) { // Duplicate key error
+        if (error.code === 11000) {
             return res.status(400).json({ message: 'Category name must be unique' });
         }
         res.status(400).json({ message: error.message || 'Failed to save category' });
@@ -307,7 +327,8 @@ async function initDefaultProfile() {
                 education: [
                     { degree: 'N/A', institution: 'N/A, N/A' }
                 ],
-                skills: ['N/A', 'N/A']
+                skills: ['N/A', 'N/A'],
+                isPublic: true // Set default profile as public
             });
             await defaultProfile.save();
             console.log('Default profile created');
