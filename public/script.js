@@ -1,4 +1,5 @@
-const API_URL = window.location.origin + '/api';
+// API URL configuration with environment fallback
+const API_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/api' : window.location.origin + '/api';
 let token = localStorage.getItem('token') || null;
 
 // View Management
@@ -39,7 +40,7 @@ function showView(viewId) {
     } else if (viewId === 'public-projects') {
         fetchProjects();
     } else if (viewId === 'public-about') {
-        fetchProfile(false); // Explicitly set to public
+        fetchProfile(false, 2); // Retry up to 2 times for public profile
     } else if (viewId === 'admin-dashboard') {
         fetchStats(true); // Admin stats
     } else if (viewId === 'admin-modules') {
@@ -49,7 +50,7 @@ function showView(viewId) {
     } else if (viewId === 'admin-categories') {
         fetchAdminCategories();
     } else if (viewId === 'admin-about') {
-        fetchProfile(true); // For admin edit form
+        fetchProfile(true, 2); // Retry up to 2 times for admin profile
     } else if (viewId === 'admin-add-module' || viewId === 'admin-edit-module') {
         fetchCategoriesForSelect(viewId === 'admin-add-module' ? 'module-categories' : 'edit-module-categories');
     } else if (viewId === 'admin-add-project' || viewId === 'admin-edit-project') {
@@ -99,7 +100,7 @@ if (mobileMenuBtn) {
 async function fetchCategoriesForSelect(selectId) {
     try {
         const response = await fetch(`${API_URL}/categories`);
-        if (!response.ok) throw new Error('Failed to fetch categories');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const categories = await response.json();
         const select = document.getElementById(selectId);
         if (select) {
@@ -116,101 +117,112 @@ async function fetchCategoriesForSelect(selectId) {
     }
 }
 
-// Fetch and display profile
-async function fetchProfile(isAdmin = false) {
+// Fetch and display profile with retry logic
+async function fetchProfile(isAdmin = false, retries = 2) {
     try {
         const headers = {};
         if (isAdmin && token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
-        const response = await fetch(`${API_URL}/profile`, {
-            headers: headers
-        });
-        if (!response.ok) {
-            if (response.status === 401 && !isAdmin) {
-                const profileContent = document.getElementById('profile-content');
-                if (profileContent) {
-                    profileContent.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Profile requires authentication or is not public</p></div>';
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                const response = await fetch(`${API_URL}/profile`, { headers });
+                if (!response.ok) {
+                    if (response.status === 401 && !isAdmin) {
+                        const profileContent = document.getElementById('profile-content');
+                        if (profileContent) {
+                            profileContent.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Profile requires authentication or is not public</p></div>';
+                        }
+                        return;
+                    }
+                    if (response.status === 404 && !isAdmin) {
+                        const profileContent = document.getElementById('profile-content');
+                        if (profileContent) {
+                            profileContent.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>No public profile available</p></div>';
+                        }
+                        return;
+                    }
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const profile = await response.json();
+                
+                if (isAdmin) {
+                    document.getElementById('profile-id').value = profile._id || '';
+                    document.getElementById('profile-name').value = profile.name;
+                    document.getElementById('profile-bio').value = profile.bio;
+                    
+                    const educationContainer = document.getElementById('education-container');
+                    educationContainer.innerHTML = profile.education.length > 0 ?
+                        profile.education.map(edu => `
+                            <div class="dynamic-field">
+                                <input type="text" class="form-control" placeholder="Degree (e.g., BSc in CS)" value="${edu.degree}">
+                                <input type="text" class="form-control" placeholder="Institution and Years (e.g., Tech University, 2022-2025)" value="${edu.institution}">
+                                <div class="remove-field">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>
+                        `).join('') :
+                        `<div class="dynamic-field">
+                            <input type="text" class="form-control" placeholder="Degree (e.g., MSc in AI)">
+                            <input type="text" class="form-control" placeholder="Institution and Years (e.g., Tech University, 2023-2025)">
+                            <div class="remove-field">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>`;
+                    
+                    const skillsContainer = document.getElementById('skills-container');
+                    skillsContainer.innerHTML = profile.skills.length > 0 ?
+                        profile.skills.map(skill => `
+                            <div class="dynamic-field">
+                                <input type="text" class="form-control" placeholder="Skill (e.g., JavaScript)" value="${skill}">
+                                <div class="remove-field">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>
+                        `).join('') :
+                        `<div class="dynamic-field">
+                            <input type="text" class="form-control" placeholder="Skill (e.g., JavaScript)">
+                            <div class="remove-field">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>`;
+                    
+                    document.querySelectorAll('#education-container .remove-field, #skills-container .remove-field').forEach(btn => {
+                        btn.addEventListener('click', () => btn.parentElement.remove());
+                    });
+                } else {
+                    const profileContent = document.getElementById('profile-content');
+                    if (profileContent) {
+                        profileContent.innerHTML = `
+                            <h3 style="margin-bottom: 1rem; color: var(--secondary);">${profile.name}</h3>
+                            <p style="margin-bottom: 1.5rem; font-size: 1.1rem;">${profile.bio}</p>
+                            <div style="margin-bottom: 2rem;">
+                                <h4 style="margin-bottom: 1rem; color: var(--dark);">Education</h4>
+                                <ul style="list-style: none;">
+                                    ${profile.education.map(edu => `
+                                        <li style="margin-bottom: 1rem; padding-left: 1.5rem; position: relative;">
+                                            <i class="fas fa-graduation-cap" style="position: absolute; left: 0; top: 5px; color: var(--primary);"></i>
+                                            <strong>${edu.degree}</strong><br>${edu.institution}
+                                        </li>
+                                    `).join('') || '<li>No education entries</li>'}
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 1rem; color: var(--dark);">Skills</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1.5rem;">
+                                    ${profile.skills.map(skill => `<span class="badge badge-primary">${skill}</span>`).join('') || '<span>No skills listed</span>'}
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
                 return;
-            }
-            throw new Error('Failed to fetch profile');
-        }
-        const profile = await response.json();
-        
-        if (isAdmin) {
-            // Populate admin-about form
-            document.getElementById('profile-id').value = profile._id || '';
-            document.getElementById('profile-name').value = profile.name;
-            document.getElementById('profile-bio').value = profile.bio;
-            
-            const educationContainer = document.getElementById('education-container');
-            educationContainer.innerHTML = profile.education.length > 0 ?
-                profile.education.map(edu => `
-                    <div class="dynamic-field">
-                        <input type="text" class="form-control" placeholder="Degree (e.g., BSc in CS)" value="${edu.degree}">
-                        <input type="text" class="form-control" placeholder="Institution and Years (e.g., Tech University, 2022-2025)" value="${edu.institution}">
-                        <div class="remove-field">
-                            <i class="fas fa-times"></i>
-                        </div>
-                    </div>
-                `).join('') :
-                `<div class="dynamic-field">
-                    <input type="text" class="form-control" placeholder="Degree (e.g., MSc in AI)">
-                    <input type="text" class="form-control" placeholder="Institution and Years (e.g., Tech University, 2023-2025)">
-                    <div class="remove-field">
-                        <i class="fas fa-times"></i>
-                    </div>
-                </div>`;
-            
-            const skillsContainer = document.getElementById('skills-container');
-            skillsContainer.innerHTML = profile.skills.length > 0 ?
-                profile.skills.map(skill => `
-                    <div class="dynamic-field">
-                        <input type="text" class="form-control" placeholder="Skill (e.g., JavaScript)" value="${skill}">
-                        <div class="remove-field">
-                            <i class="fas fa-times"></i>
-                        </div>
-                    </div>
-                `).join('') :
-                `<div class="dynamic-field">
-                    <input type="text" class="form-control" placeholder="Skill (e.g., JavaScript)">
-                    <div class="remove-field">
-                        <i class="fas fa-times"></i>
-                    </div>
-                </div>`;
-            
-            // Reattach remove field listeners
-            document.querySelectorAll('#education-container .remove-field, #skills-container .remove-field').forEach(btn => {
-                btn.addEventListener('click', () => btn.parentElement.remove());
-            });
-        } else {
-            // Populate public-about view
-            const profileContent = document.getElementById('profile-content');
-            if (profileContent) {
-                profileContent.innerHTML = `
-                    <h3 style="margin-bottom: 1rem; color: var(--secondary);">${profile.name}</h3>
-                    <p style="margin-bottom: 1.5rem; font-size: 1.1rem;">${profile.bio}</p>
-                    <div style="margin-bottom: 2rem;">
-                        <h4 style="margin-bottom: 1rem; color: var(--dark);">Education</h4>
-                        <ul style="list-style: none;">
-                            ${profile.education.map(edu => `
-                                <li style="margin-bottom: 1rem; padding-left: 1.5rem; position: relative;">
-                                    <i class="fas fa-graduation-cap" style="position: absolute; left: 0; top: 5px; color: var(--primary);"></i>
-                                    <strong>${edu.degree}</strong><br>${edu.institution}
-                                </li>
-                            `).join('') || '<li>No education entries</li>'}
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 style="margin-bottom: 1rem; color: var(--dark);">Skills</h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1.5rem;">
-                            ${profile.skills.map(skill => `<span class="badge badge-primary">${skill}</span>`).join('') || '<span>No skills listed</span>'}
-                        </div>
-                    </div>
-                `;
+            } catch (innerError) {
+                console.error('Inner error parsing profile:', innerError);
+                throw new Error('Failed to parse profile data');
             }
         }
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
     } catch (error) {
         console.error('Error fetching profile:', error);
         if (!isAdmin) {
@@ -242,7 +254,7 @@ if (profileForm) {
             bio: document.getElementById('profile-bio').value,
             education,
             skills,
-            isPublic: document.getElementById('profile-public') ? document.getElementById('profile-public').checked : false, // Added isPublic field
+            isPublic: document.getElementById('profile-public') ? document.getElementById('profile-public').checked : false,
         };
         
         try {
@@ -290,10 +302,10 @@ if (profileForm) {
 async function fetchStats(isAdmin = false) {
     try {
         const response = await fetch(`${API_URL}/modules`);
-        if (!response.ok) throw new Error('Failed to fetch modules');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const modules = await response.json();
         const projectsResponse = await fetch(`${API_URL}/projects`);
-        if (!projectsResponse.ok) throw new Error('Failed to fetch projects');
+        if (!projectsResponse.ok) throw new Error(`HTTP error! Status: ${projectsResponse.status}`);
         const projects = await projectsResponse.json();
         
         const stats = [
@@ -322,7 +334,7 @@ async function fetchStats(isAdmin = false) {
 async function fetchModules(featured = false) {
     try {
         const response = await fetch(`${API_URL}/modules`);
-        if (!response.ok) throw new Error('Failed to fetch modules');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const modules = await response.json();
         
         const moduleTypes = {
@@ -418,7 +430,7 @@ async function fetchAdminModules() {
         const response = await fetch(`${API_URL}/modules`, {
             headers: { 'Authorization': `Bearer ${token}` },
         });
-        if (!response.ok) throw new Error('Failed to fetch modules');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const modules = await response.json();
         
         const moduleTypes = {
@@ -491,11 +503,10 @@ async function fetchAdminModules() {
                         });
                         if (!response.ok) {
                             const errorData = await response.json();
-                            throw new Error(errorData.message || 'Failed to fetch module');
+                            throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
                         }
                         const module = await response.json();
                         
-                        // Populate edit form
                         document.getElementById('edit-module-id').value = module._id;
                         document.getElementById('edit-module-name').value = module.name;
                         document.getElementById('edit-module-type').value = module.type;
@@ -504,14 +515,12 @@ async function fetchAdminModules() {
                         document.getElementById('edit-end-date').value = module.endDate ? new Date(module.endDate).toISOString().split('T')[0] : '';
                         document.getElementById('edit-module-status').value = module.status;
 
-                        // Populate categories
                         await fetchCategoriesForSelect('edit-module-categories');
                         const categorySelect = document.getElementById('edit-module-categories');
                         Array.from(categorySelect.options).forEach(option => {
                             option.selected = module.categories.some(c => c._id === option.value);
                         });
 
-                        // Populate projects
                         const projectsContainer = document.getElementById('edit-projects-container');
                         projectsContainer.innerHTML = module.projects.length > 0 ?
                             module.projects.map(p => `
@@ -531,7 +540,6 @@ async function fetchAdminModules() {
                                 </div>
                             </div>`;
 
-                        // Populate assessments
                         const assessmentsContainer = document.getElementById('edit-assessments-container');
                         assessmentsContainer.innerHTML = module.assessments.length > 0 ?
                             module.assessments.map(a => `
@@ -551,7 +559,6 @@ async function fetchAdminModules() {
                                 </div>
                             </div>`;
 
-                        // Reattach remove field listeners
                         document.querySelectorAll('#edit-projects-container .remove-field, #edit-assessments-container .remove-field').forEach(btn => {
                             btn.addEventListener('click', () => btn.parentElement.remove());
                         });
@@ -559,8 +566,7 @@ async function fetchAdminModules() {
                         showView('admin-edit-module');
                     } catch (error) {
                         console.error('Error fetching module for edit:', error);
-                        const errorMessage = error.message === 'Module not found' ? 'Module not found. It may have been deleted.' : 'Failed to load module for editing. Please try again.';
-                        alert(errorMessage);
+                        alert(error.message === 'Module not found' ? 'Module not found. It may have been deleted.' : 'Failed to load module for editing. Please try again.');
                     }
                 });
             });
@@ -576,13 +582,12 @@ async function fetchAdminModules() {
                             });
                             if (!response.ok) {
                                 const errorData = await response.json();
-                                throw new Error(errorData.message || 'Failed to delete module');
+                                throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
                             }
-                            fetchAdminModules(); // Refresh module list
+                            fetchAdminModules();
                         } catch (error) {
                             console.error('Error deleting module:', error);
-                            const errorMessage = error.message === 'Module not found' ? 'Module not found. It may have been deleted.' : 'Error deleting module. Please try again.';
-                            alert(errorMessage);
+                            alert(error.message === 'Module not found' ? 'Module not found. It may have been deleted.' : 'Error deleting module. Please try again.');
                         }
                     }
                 });
@@ -601,7 +606,7 @@ async function fetchAdminModules() {
 async function fetchProjects() {
     try {
         const response = await fetch(`${API_URL}/projects`);
-        if (!response.ok) throw new Error('Failed to fetch projects');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const projects = await response.json();
         
         const projectTypes = {
@@ -671,7 +676,7 @@ async function fetchAdminProjects() {
         const response = await fetch(`${API_URL}/projects`, {
             headers: { 'Authorization': `Bearer ${token}` },
         });
-        if (!response.ok) throw new Error('Failed to fetch projects');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const projects = await response.json();
         
         const projectTypes = {
@@ -734,7 +739,6 @@ async function fetchAdminProjects() {
                 `;
             }).join('') || '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>No projects available</p></div>';
 
-            // Add event listeners for edit and delete buttons
             document.querySelectorAll('.edit-project').forEach(button => {
                 button.addEventListener('click', async () => {
                     const projectId = button.getAttribute('data-id');
@@ -744,11 +748,10 @@ async function fetchAdminProjects() {
                         });
                         if (!response.ok) {
                             const errorData = await response.json();
-                            throw new Error(errorData.message || 'Failed to fetch project');
+                            throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
                         }
                         const project = await response.json();
                         
-                        // Populate edit form
                         document.getElementById('edit-project-id').value = project._id;
                         document.getElementById('edit-project-title').value = project.title;
                         document.getElementById('edit-project-module').value = project.module;
@@ -757,7 +760,6 @@ async function fetchAdminProjects() {
                         document.getElementById('edit-project-date').value = new Date(project.date).toISOString().split('T')[0];
                         document.getElementById('edit-project-github').value = project.githubUrl;
 
-                        // Populate categories
                         await fetchCategoriesForSelect('edit-project-categories');
                         const categorySelect = document.getElementById('edit-project-categories');
                         Array.from(categorySelect.options).forEach(option => {
@@ -767,8 +769,7 @@ async function fetchAdminProjects() {
                         showView('admin-edit-project');
                     } catch (error) {
                         console.error('Error fetching project for edit:', error);
-                        const errorMessage = error.message === 'Project not found' ? 'Project not found. It may have been deleted.' : 'Failed to load project for editing. Please try again.';
-                        alert(errorMessage);
+                        alert(error.message === 'Project not found' ? 'Project not found. It may have been deleted.' : 'Failed to load project for editing. Please try again.');
                     }
                 });
             });
@@ -784,13 +785,12 @@ async function fetchAdminProjects() {
                             });
                             if (!response.ok) {
                                 const errorData = await response.json();
-                                throw new Error(errorData.message || 'Failed to delete project');
+                                throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
                             }
-                            fetchAdminProjects(); // Refresh project list
+                            fetchAdminProjects();
                         } catch (error) {
                             console.error('Error deleting project:', error);
-                            const errorMessage = error.message === 'Project not found' ? 'Project not found. It may have been deleted.' : 'Error deleting project. Please try again.';
-                            alert(errorMessage);
+                            alert(error.message === 'Project not found' ? 'Project not found. It may have been deleted.' : 'Error deleting project. Please try again.');
                         }
                     }
                 });
@@ -811,7 +811,7 @@ async function fetchAdminCategories() {
         const response = await fetch(`${API_URL}/categories`, {
             headers: { 'Authorization': `Bearer ${token}` },
         });
-        if (!response.ok) throw new Error('Failed to fetch categories');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const categories = await response.json();
         
         const adminCategories = document.getElementById('admin-all-categories');
@@ -837,13 +837,11 @@ async function fetchAdminCategories() {
                 </div>
             `).join('') || '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>No categories available</p></div>';
 
-            // Add event listeners for edit and delete buttons
             document.querySelectorAll('.edit-category').forEach(button => {
                 button.addEventListener('click', () => {
                     const categoryId = button.getAttribute('data-id');
                     const categoryName = button.getAttribute('data-name');
                     
-                    // Populate category form for editing
                     document.getElementById('category-id').value = categoryId;
                     document.getElementById('category-name').value = categoryName;
                     document.getElementById('category-submit').innerHTML = '<i class="fas fa-save"></i> Update Category';
@@ -861,13 +859,12 @@ async function fetchAdminCategories() {
                             });
                             if (!response.ok) {
                                 const errorData = await response.json();
-                                throw new Error(errorData.message || 'Failed to delete category');
+                                throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
                             }
-                            fetchAdminCategories(); // Refresh category list
+                            fetchAdminCategories();
                         } catch (error) {
                             console.error('Error deleting category:', error);
-                            const errorMessage = error.message === 'Category not found' ? 'Category not found. It may have been deleted.' : 'Error deleting category. Please try again.';
-                            alert(errorMessage);
+                            alert(error.message === 'Category not found' ? 'Category not found. It may have been deleted.' : 'Error deleting category. Please try again.');
                         }
                     }
                 });
