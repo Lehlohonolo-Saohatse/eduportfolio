@@ -39,7 +39,7 @@ function showView(viewId) {
     } else if (viewId === 'public-projects') {
         fetchProjects();
     } else if (viewId === 'public-about') {
-        fetchProfile();
+        fetchProfile(false); // Explicitly set to public
     } else if (viewId === 'admin-dashboard') {
         fetchStats(true); // Admin stats
     } else if (viewId === 'admin-modules') {
@@ -119,8 +119,23 @@ async function fetchCategoriesForSelect(selectId) {
 // Fetch and display profile
 async function fetchProfile(isAdmin = false) {
     try {
-        const response = await fetch(`${API_URL}/profile`);
-        if (!response.ok) throw new Error('Failed to fetch profile');
+        const headers = {};
+        if (isAdmin && token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        const response = await fetch(`${API_URL}/profile`, {
+            headers: headers
+        });
+        if (!response.ok) {
+            if (response.status === 401 && !isAdmin) {
+                const profileContent = document.getElementById('profile-content');
+                if (profileContent) {
+                    profileContent.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Profile requires authentication or is not public</p></div>';
+                }
+                return;
+            }
+            throw new Error('Failed to fetch profile');
+        }
         const profile = await response.json();
         
         if (isAdmin) {
@@ -227,6 +242,7 @@ if (profileForm) {
             bio: document.getElementById('profile-bio').value,
             education,
             skills,
+            isPublic: document.getElementById('profile-public') ? document.getElementById('profile-public').checked : false, // Added isPublic field
         };
         
         try {
