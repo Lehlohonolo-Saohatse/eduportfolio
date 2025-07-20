@@ -84,14 +84,19 @@ function authenticateToken(req, res, next) {
 }
 
 // Middleware to check public profile access
-function checkPublicProfile(req, res, next) {
+async function checkPublicProfile(req, res, next) {
     if (!req.user) {
-        Profile.findOne({ isPublic: true }, (err, profile) => {
-            if (err) return res.status(500).json({ message: 'Server error' });
-            if (!profile) return res.status(404).json({ message: 'No public profile available' });
+        try {
+            const profile = await Profile.findOne({ isPublic: true });
+            if (!profile) {
+                return res.status(404).json({ message: 'No public profile available' });
+            }
             req.publicProfile = profile;
             next();
-        });
+        } catch (error) {
+            console.error('Error fetching public profile:', error);
+            res.status(500).json({ message: 'Server error' });
+        }
     } else {
         next();
     }
@@ -324,11 +329,9 @@ async function initDefaultProfile() {
             const defaultProfile = new Profile({
                 name: 'N/A',
                 bio: 'N/A',
-                education: [
-                    { degree: 'N/A', institution: 'N/A, N/A' }
-                ],
+                education: [{ degree: 'N/A', institution: 'N/A, N/A' }],
                 skills: ['N/A', 'N/A'],
-                isPublic: true // Set default profile as public
+                isPublic: true
             });
             await defaultProfile.save();
             console.log('Default profile created');
